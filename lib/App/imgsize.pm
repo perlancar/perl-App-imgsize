@@ -26,6 +26,7 @@ $SPEC{imgsize} = {
     },
 };
 sub imgsize {
+    require Display::Resolution;
     require Image::Size;
 
     my %args = @_;
@@ -39,16 +40,23 @@ sub imgsize {
 
         my ($x, $y) = Image::Size::imgsize($filename);
 
+        $x ||= 0;
+        $y ||= 0;
+
+        my $res_names = Display::Resolution::get_display_resolution_name(
+            width => $x, height => $y, all => 1);
+
         push @res, {
             filename => $filename,
             filesize => (-s $filename),
             x => $x,
             y => $y,
+            res_name => $res_names ? join(", ", @$res_names) : undef,
         };
     }
 
     [200, "OK", \@res,
-     {'table.fields' => ['filename', 'x', 'y', 'filesize']}];
+     {'table.fields' => [qw/filename filesize x y res_name/]}];
 }
 
 1;
