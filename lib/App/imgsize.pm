@@ -11,6 +11,8 @@ require Exporter;
 our @ISA       = qw(Exporter);
 our @EXPORT_OK = qw(imgsize);
 
+my $res_meta = {'table.fields' => [qw/filename filesize width height res_name/]};
+
 $SPEC{imgsize} = {
     v => 1.1,
     summary =>
@@ -24,6 +26,17 @@ $SPEC{imgsize} = {
             greedy => 1,
         },
     },
+    examples => [
+        {
+            args => {filenames => ['foo.jpg', 'bar.png', 'baz.txt']},
+            result => [200, "OK", [
+                {filename => 'foo.jpg', filesize => 23844, width => 640, height => 480, res_name => "VGA"},
+                {filename => 'bar.png', filesize => 87374, width => 400, height => 200, res_name => undef},
+                {filename => 'baz.txt', filesize =>  2393, width =>   0, height =>   0, res_name => undef},
+            ], $res_meta],
+            test => 0,
+        }
+    ],
 };
 sub imgsize {
     require Display::Resolution;
@@ -49,14 +62,13 @@ sub imgsize {
         push @res, {
             filename => $filename,
             filesize => (-s $filename),
-            x => $x,
-            y => $y,
+            width => $x,
+            height => $y,
             res_name => $res_names ? join(", ", @$res_names) : undef,
         };
     }
 
-    [200, "OK", \@res,
-     {'table.fields' => [qw/filename filesize x y res_name/]}];
+    [200, "OK", \@res, $res_meta];
 }
 
 1;
